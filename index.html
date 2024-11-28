@@ -1,0 +1,529 @@
+<html>
+<head>
+<base href="." />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stream TV - Lahrech</title>
+
+<!-- Cairo Font -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Bootstrap 5 RTL CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Video.js CSS -->
+<link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --accent-color: #e74c3c;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    padding-top: 76px;
+    padding-bottom: 60px;
+}
+
+.header {
+    background: var(--primary-color);
+    color: white;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+}
+
+.channel-card {
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+.channel-card:hover {
+    transform: translateY(-5px);
+}
+
+.channel-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.video-modal .modal-content {
+    background-color: rgba(0,0,0,0.9);
+}
+
+#scrollTopBtn {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    display: none;
+    z-index: 999;
+}
+
+.footer {
+    background: var(--primary-color);
+    color: white;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.search-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 25px;
+}
+
+.video-js {
+    width: 100%;
+    height: 0;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.modal-dialog {
+    max-width: 90%;
+    margin: 1.75rem auto;
+}
+
+.channel-info {
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header py-2">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <svg class="logo me-2" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="#e74c3c"/>
+                <polygon points="40,30 70,50 40,70" fill="white"/>
+            </svg>
+            <h1 class="h4 mb-0">قنوات فضائية مختارة</h1>
+        </div>
+    </div>
+</header>
+
+<!-- Search & Filters -->
+<div class="container mt-4">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="search-box p-2">
+                <input type="text" id="searchInput" class="form-control border-0" placeholder="بحث عن القنوات...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="countryFilter">
+                <option value="">كل الدول</option>
+                <option value=" الأردن"> الأردن</option>
+<option value=" الإمارات العربية"> الإمارات العربية</option>
+<option value=" البحرين"> البحرين</option>
+<option value=" البرازيل"> البرازيل</option>
+<option value=" السعودية"> السعودية</option>
+<option value=" الصين"> الصين</option>
+<option value=" العراق"> العراق</option>
+<option value=" الغابون"> الغابون</option>
+<option value=" الكويت"> الكويت</option>
+<option value=" ألمانيا"> ألمانيا</option>
+<option value=" المغرب"> المغرب</option>
+<option value=" المملكة المتحدة"> المملكة المتحدة</option>
+<option value=" الولايات المتحدة الأمريكية"> الولايات المتحدة الأمريكية</option>
+<option value=" اليمن"> اليمن</option>
+<option value=" إيران"> إيران</option>
+<option value=" إيطاليا"> إيطاليا</option>
+<option value=" باكستان"> باكستان</option>
+<option value=" تركيا"> تركيا</option>
+<option value=" جمهورية الدومينيك"> جمهورية الدومينيك</option>
+<option value=" روسيا"> روسيا</option>
+<option value=" روسيا البيضاء"> روسيا البيضاء</option>
+<option value=" سلطة عمان"> سلطة عمان</option>
+<option value=" سلطنة عمان"> سلطنة عمان</option>
+<option value=" غواتيمالا"> غواتيمالا</option>
+<option value=" فرنسا"> فرنسا</option>
+<option value=" فلسطين"> فلسطين</option>
+<option value=" قطر"> قطر</option>
+<option value=" لبنان"> لبنان</option>
+<option value=" ليبيا"> ليبيا</option>
+<option value=" ليكسنبورغ"> ليكسنبورغ</option>
+<option value=" مصر"> مصر</option>
+
+
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="genreFilter">
+                <option value="">كل الفئات</option>
+                
+
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Channels Grid -->
+<div class="container mt-4">
+    <div class="row g-4" id="channelsGrid">
+        <!-- Channels will be inserted here dynamically -->
+    </div>
+</div>
+
+<!-- Video Modal -->
+<div class="modal fade video-modal" id="videoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <div class="channel-info" id="channelInfo"></div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <video-js id="videoPlayer" class="vjs-default-skin vjs-big-play-centered">
+                    <p class="vjs-no-js">للمشاهدة، الرجاء تفعيل JavaScript</p>
+                </video-js>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scroll Top Button -->
+<button id="scrollTopBtn" class="btn btn-primary rounded-circle">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Footer -->
+<footer class="footer py-3">
+    <div class="container text-center">
+        <svg class="logo mb-2" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#e74c3c"/>
+            <polygon points="40,30 70,50 40,70" fill="white"/>
+        </svg>
+        <p class="small mb-0">Stream TV &copy; 2023 - جميع الحقوق محفوظة</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+<script>
+// Sample channels data with working test streams
+const channels = [
+{id:1,name:"قناة المملكة",logo:"https://yt3.googleusercontent.com/ytc/AIdro_k2Q10aeHs5-DCmdpJghKWzPdB0iqLpM00pUcvt2KKijFc=s900-c-k-c0x00ffffff-no-rj",country:"الأردن",genre:"قنوات إخبارية",url:"https://bcovlive-a.akamaihd.net/4109c7ba30fd4a44ad9afe917c67a8c8/eu-central-1/6415809151001/playlist.m3u8"},
+{id:2,name:"قناة الحقيقة الدولية",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9-jUr3HRJRQYM9hPD0hysBcL8oalMsn7LwQ&s",country:"الأردن",genre:"قنوات إخبارية",url:"https://ghaasiflu.online/alhqeqa/index.m3u8"},
+{id:3,name:"قناة الإرث النبوي",logo:"https://yt3.googleusercontent.com/LMw7gdOioHm8pUZpEEbCGtYOIRD-bl0vQ-LLjsbeDoezhAECJ-A-3-iqExF5qPchJ_OiskWw=s900-c-k-c0x00ffffff-no-rj",country:"الأردن",genre:"قنوات دينية",url:"http://82.212.74.2:8000/live/7307.m3u8"},
+{id:4,name:"العربية Business",logo:"https://yt3.googleusercontent.com/dSVPHSnnNce0Z8Oez7oKkpYBopVaNN5iMQ-7OjvLaJWJUzZhONzmb176jLGAPfyvvps3Asnbjw=s160-c-k-c0x00ffffff-no-rj",country:"الإمارات العربية",genre:"قنوات أخبار إقتصادية",url:"https://live.alarabiya.net/alarabiapublish/aswaaq.smil/playlist.m3u8"},
+{id:5,name:"CNBC عربية ",logo:"https://www.cnbcarabia.com/_next/static/media/cnbc-logo-white.b6d7d504.svg",country:"الإمارات العربية",genre:"قنوات أخبار إقتصادية",url:"https://ythls.armelin.one/channel/UCsHdPPJXT-yKVTLGkn3DSvQ.m3u8"},
+{id:6,name:"قناة العربية",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBPs8O7gTQZyh_sgIa_27PJkHjAH--qUDrw&s",country:"الإمارات العربية",genre:"قنوات إخبارية",url:"https://live.alarabiya.net/alarabiapublish/alarabiya.smil/playlist.m3u8"},
+{id:7,name:"قناة المشهد",logo:"https://yt3.googleusercontent.com/VtNsH4R3StlgJ0sbFgY68Zzt8kXGnF39t_6rPmJDw1qpfB6h5JtAAAmvwgIGgmDi-9buOiTS=s900-c-k-c0x00ffffff-no-rj",country:"الإمارات العربية",genre:"قنوات إخبارية",url:"https://bcovlive-a.akamaihd.net/20c3ca22be3c4f03b30afbf3c92cfd14/ap-south-1/6313884884001/playlist.m3u8"},
+{id:8,name:"قناة اليوم",logo:"https://upload.wikimedia.org/wikipedia/commons/5/56/%D9%81%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D9%8A%D9%88%D9%85.jpg",country:"الإمارات العربية",genre:"قنوات إخبارية",url:"https://alyaum-tv.akamaized.net/hls/alyaum-tv.m3u8"},
+{id:9,name:"قناة سكاي نيوز عربية",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2UOwLhGfaCjJyWqhkTtJUrvTtrJSxWcibvw&s",country:"الإمارات العربية",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCIJXOvggjKtCagMfxvcCzAA.m3u8"},
+{id:10,name:"قناة بينونة",logo:"https://yt3.googleusercontent.com/FYmQLVIxi5nkKqgoeGUyyevDv6gseicYPuOeVW74hQ-ljJW_qVl7WVUasfC-SnGQDRD_QOkzFw=s160-c-k-c0x00ffffff-no-rj",country:"الإمارات العربية",genre:"قنوات ثقافية",url:"https://vo-live.cdb.cdn.orange.com/Content/Channel/Baynounah/HLS/index.m3u8"},
+{id:11,name:"قناة الشارقة القرآن الكريم",logo:"https://sbauae.faulio.com/storage/mediagallery/15/8a/small_ce9abfb9b99a2a7aa2a605386ac93f22e74ec48e.png",country:"الإمارات العربية",genre:"قنوات القرآن الكريم",url:"https://live.kwikmotion.com/smcquranlive/quranradiolive/chunks.m3u8"},
+{id:12,name:"قناة الشارقة",logo:"https://sbauae.faulio.com/storage/mediagallery/cc/d6/small_a944754beaeb192cba3b7deb970d402df65ef87c.png",country:"الإمارات العربية",genre:"قنوات عامة",url:"https://svs.itworkscdn.net/smc1live/smc1.smil/playlist.m3u8"},
+{id:13,name:"قناة أبو ظبي الرياضية 1",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/768px-Abu_Dhabi_Sports_logo_2023.svg.png",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://vo-live.cdb.cdn.orange.com/Content/Channel/AbuDhabiSportsChannel1/HLS/index.m3u8"},
+{id:14,name:"قناة أبو ظبي الرياضية 2 ",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Abu_Dhabi_Sports_logo_2023.svg/768px-Abu_Dhabi_Sports_logo_2023.svg.png",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://vo-live.cdb.cdn.orange.com/Content/Channel/AbuDhabiSportsChannel2/HLS/index.m3u8"},
+{id:15,name:"قناة دبي الرياضية 1",logo:"https://www.dubaisports.ae/content/dam/Common/brands1/dubaisports.png",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmidspta.cdn.mgmlcdn.com/dubaisports/smil:dubaisports.stream.smil/chunklist.m3u8"},
+{id:16,name:"قناة دبي الرياضية 2",logo:"https://www.dubaisports.ae/content/dam/Common/brands1/dubaisports.png",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmitwlvvll.cdn.mgmlcdn.com/dubaisportshd/smil:dubaisportshd.smil/chunklist.m3u8"},
+{id:17,name:"قناة دبي الرياضية 3",logo:"https://www.dubaisports.ae/content/dam/Common/brands1/dubaisports.png",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmitwlvvll.cdn.mgmlcdn.com/dubaisportshd5/smil:dubaisportshd5.smil/chunklist.m3u8"},
+{id:18,name:"قناة الشارقة الرياضية ",logo:"https://yt3.googleusercontent.com/ytc/AIdro_mWpU3Di5nOLjggE5TKaPVbzN7mGzlFy5X8xfu-32Wt-A=s160-c-k-c0x00ffffff-no-rj",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://svs.itworkscdn.net/smc4sportslive/smc4.smil/playlist.m3u8"},
+{id:19,name:"Dubai Racing 2",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzvNN0bMzrX5IFvxWH9NuslphIr2sYsR_2xw&s",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmithrvllta.cdn.mgmlcdn.com/dubairacing/smil:dubairacing.smil/chunklist.m3u8"},
+{id:20,name:"Dubai Racing 3",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzvNN0bMzrX5IFvxWH9NuslphIr2sYsR_2xw&s",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmithrvllta.cdn.mgmlcdn.com/dubaimubasher/smil:dubaimubasher.smil/chunklist.m3u8"},
+{id:21,name:"Dubai Racing",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzvNN0bMzrX5IFvxWH9NuslphIr2sYsR_2xw&s",country:"الإمارات العربية",genre:"قنوات رياضية",url:"https://dmisdracta.cdn.mgmlcdn.com/events/smil:events.stream.smil/chunklist.m3u8"},
+{id:22,name:"قناة ناشونال جيوغرافيك أبوظبي",logo:"https://yt3.googleusercontent.com/VZTHi5F2qvQri1bRDMLuafEYc_g3OaJ12DIw9DsPOI9gDsn4afltS_cnJw3TU_EshOCakdwUtg=s160-c-k-c0x00ffffff-no-rj",country:"الإمارات العربية",genre:"قنوات وثائقية",url:"https://vo-live.cdb.cdn.orange.com/Content/Channel/NationalGeographicHDChannel/HLS/index.m3u8"},
+{id:23,name:"قناة القرآن الكريم البحرين",logo:"https://dawa.center/images/626c5f0890dff.png",country:"البحرين",genre:"قنوات القرآن الكريم",url:"https://5c7b683162943.streamlock.net/live/ngrp:bahrainquran_all/playlist.m3u8"},
+{id:24,name:"قناة البحرين الرياضية",logo:"https://yt3.googleusercontent.com/9pQMVLCb_JcUeJx-_Mnk_6dLNbB2r81OJFKGwMWJiFSutDqTEH5dCdt2wGz9_5_6aL8f_AyFJQ=s160-c-k-c0x00ffffff-no-rj",country:"البحرين",genre:"قنوات رياضية",url:"https://5c7b683162943.streamlock.net/live/ngrp:sportsone_all/playlist.m3u8"},
+{id:25,name:"قناة البحرين الرياضية 2",logo:"https://yt3.googleusercontent.com/9pQMVLCb_JcUeJx-_Mnk_6dLNbB2r81OJFKGwMWJiFSutDqTEH5dCdt2wGz9_5_6aL8f_AyFJQ=s160-c-k-c0x00ffffff-no-rj",country:"البحرين",genre:"قنوات رياضية",url:"https://5c7b683162943.streamlock.net/live/ngrp:bahrainsportstwo_all/playlist.m3u8"},
+{id:26,name:"CANAL DO INTER",logo:"https://yt3.googleusercontent.com/HqZas8SRbMlfYdjyVstLcJyXlR7EZM2CtfHBILwRaA1H5DEpjA4WnTGzJNRPPUuhb3xXF_esTw=s160-c-k-c0x00ffffff-no-rj",country:"البرازيل",genre:"قنوات رياضية",url:"https://video01.soultv.com.br/internacional/internacional/playlist.m3u8"},
+{id:27,name:"الشرق للأخبار",logo:"https://asharq.com/_next/static/media/asharqLogo.00f9b3ef.svg",country:"السعودية",genre:"قنوات أخبار إقتصادية",url:"https://bcovlive-a.akamaihd.net/0b75ef0a49e24704a4ca023d3a82c2df/ap-south-1/6203311941001/playlist.m3u8"},
+{id:28,name:"قناة الإخبارية",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%A5%D8%AE%D8%A8%D8%A7%D8%B1%D9%8A%D8%A9.jpg/220px-%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%A5%D8%AE%D8%A8%D8%A7%D8%B1%D9%8A%D8%A9.jpg",country:"السعودية",genre:"قنوات إخبارية",url:"https://al-ekhbaria-prod-dub.shahid.net/out/v1/d443f3203b444032896e3233cb6eaa84/index.m3u8"},
+{id:29,name:"قناة الحدث",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTn1QrjoG3q6_ku5D054jCd9vZFPJ2YRDpWg&s",country:"السعودية",genre:"قنوات إخبارية",url:"https://shls-hadath-prod-dub.shahid.net/out/v1/0e1a306399c346faac4226aa0858f99b/index.m3u8"},
+{id:30,name:"قناة أهل القرآن",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLxQwFgMdFga-F6zaJjX3fo0xbsprRrfghlA&s",country:"السعودية",genre:"قنوات القرآن الكريم",url:"https://al-ekhbaria-prod-dub.shahid.net/out/v1/9885cab0a3ec4008b53bae57a27ca76b/index.m3u8"},
+{id:31,name:"قناة السنة",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4GKa2KGDJyYyD-w_sbdZwXv-UdIjYgrl96FUpj5tGD4Znr5h6wNUw0TAfyGXMKph0rKw&usqp=CAU",country:"السعودية",genre:"قنوات دينية",url:"https://sbc-prod-dub-enc.edgenextcdn.net/out/v1/b09bbb8d9b684763be4211b088168de7/index_1.m3u8"},
+{id:32,name:"قناة إقرأ",logo:"https://yt3.googleusercontent.com/DDkLFc2B4nibp7L_h4fmFC052GcCNzvskPpz6ACpxanS1N2NYxndYb_VyhNS3uXb1zIilV25=s900-c-k-c0x00ffffff-no-rj",country:"السعودية",genre:"قنوات دينية",url:"https://iqraa-live.ercdn.net/iqraa/iqraa.m3u8"},
+{id:33,name:"قناة كيف",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nA0E0Umvrajd3InJlCcohg9Jglt5bJsXnzykEkRbY1NYI=s900-c-k-c0x00ffffff-no-rj",country:"السعودية",genre:"قنوات دينية",url:"http://82.212.74.2:8000/live/hls/7311.m3u8"},
+{id:34,name:"قناة مكة",logo:"https://makkahtv.tv/assets/images/makkah-channel-redcolor-1440-alpha-570x716.png",country:"السعودية",genre:"قنوات دينية",url:"https://media2.streambrothers.com:1936/8122/8122/playlist.m3u8"},
+{id:35,name:"SSC1HD",logo:"https://img.kooora.com/?i=o%2fh%2f1%2f921%2fssc1-hd-1.png",country:"السعودية",genre:"قنوات رياضية",url:"https://af.ayassport.ir/hls2/ssc1.m3u8"},
+{id:36,name:"SSC Action Waleed",logo:"https://tv.techfiji.com/wp-content/uploads/2024/08/agc0IZF.png",country:"السعودية",genre:"قنوات رياضية",url:"https://shls-live-event2-prod-dub.shahid.net/out/v1/0456ede1a39145d98b3d8c8062ddc998/index.m3u8"},
+{id:37,name:"قناة الشرق الوثائقية",logo:"https://yt3.googleusercontent.com/AFUZ79or1rvrFKbfaMDdoJ1n_814lANCdUOdH0mdGRmcYfIfDH4cfTWwyUkHwie2I2xJPlaTJg=s900-c-k-c0x00ffffff-no-rj",country:"السعودية",genre:"قنوات وثائقية",url:"https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8"},
+{id:38,name:"Discovery الشرق",logo:"https://yt3.googleusercontent.com/s8wS-UlL4iDRkVEh2M42h2PSwOGY--rT9CGs74I35Xpg_cIVjj8-hL4QINJ_rv9J0j9gBXwNXw=s160-c-k-c0x00ffffff-no-rj",country:"السعودية",genre:"قنوات وثائقية",url:"https://svs.itworkscdn.net/asharqdiscoverylive/asharqd.smil/playlist_dvr.m3u8"},
+{id:39,name:"CGTN Arabic",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/CGTN_arabic.png/640px-CGTN_arabic.png",country:"الصين",genre:"قنوات إخبارية",url:"https://news.cgtn.com/resource/live/arabic/cgtn-a.m3u8"},
+{id:40,name:"CGTN French",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/CGTN_-_fran%C3%A7ais.png/640px-CGTN_-_fran%C3%A7ais.png",country:"الصين",genre:"قنوات إخبارية",url:"https://news.cgtn.com/resource/live/french/cgtn-f.m3u8"},
+{id:41,name:"العراقية نيوز",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu9mw_wd3MbSD54uZoXhkscZ52FxZ6v8CzIg&s",country:"العراق",genre:"قنوات إخبارية",url:"https://cdn.catiacast.video/abr/78054972db7708422595bc96c6e024ac/playlist.m3u8"},
+{id:42,name:"الشرقية نيوز",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdQ1JeJ21Qxt-6qWUgo33a1iwOiCx_gH_zog&s",country:"العراق",genre:"قنوات إخبارية",url:"https://5d94523502c2d.streamlock.net/alsharqiyalive/mystream/playlist.m3u8"},
+{id:43,name:"دجلة نيوز",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkecrcMu94WJTcSPLtz06OglNC65nMAg4mNA&s",country:"العراق",genre:"قنوات إخبارية",url:"https://ghaasiflu.online/Dijlah/index.m3u8"},
+{id:44,name:"قناة اي نيوز الفضائية",logo:"https://www.i-news.tv/_next/image?url=https%3A%2F%2Finews.fra1.digitaloceanspaces.com%2Finews%2Finews%2Fnavbar_logo%2F750feab7-3f3a-49c6-b0bb-4c940fd83dd3.png&w=256&q=75",country:"العراق",genre:"قنوات إخبارية",url:"https://live.i-news.tv/hls/stream.m3u8"},
+{id:45,name:"NourTV",logo:"https://www.nourtv.ga/admin/photos_actu/4754Logo%20nour%20TV(1).png",country:"الغابون",genre:"قنوات دينية",url:"https://helga.iptv2022.com/sh/Nour_tv/index.m3u8"},
+{id:46,name:"قناة إثراء",logo:"https://dawa.center/images/61c76de015c2d.jpg",country:"الكويت",genre:"قنوات دينية",url:"https://kwtethta.cdn.mangomolo.com/eth/smil:eth.stream.smil/chunklist.m3u8"},
+{id:47,name:"قناة كويت سبورت",logo:"https://cdn.livesoccertv.com/images/channels/thumbnails/ktv-sport-kuwait.png",country:"الكويت",genre:"قنوات رياضية",url:"https://kwtspta.cdn.mangomolo.com/sp/smil:sp.stream.smil/chunklist.m3u8"},
+{id:48,name:"قناة الكويت الرياضية بلاس",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nu_ZUGkx6ssh6UyzIh9mIe7nHnnAKY7pWt29dF2GhRVhA=s160-c-k-c0x00ffffff-no-rj",country:"الكويت",genre:"قنوات رياضية",url:"https://kwtsplta.cdn.mangomolo.com/spl/smil:spl.stream.smil/chunklist.m3u8"},
+{id:49,name:"DW Arabic",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlkzUTZ92qaGiBtl9aqWOuWDdNDdjeZ1MpKw&s",country:"ألمانيا",genre:"قنوات إخبارية",url:"https://dwamdstream103.akamaized.net/hls/live/2015526/dwstream103/index.m3u8"},
+{id:50,name:"M24TV",logo:"https://www.m24tv.ma/themes/custom/m24_tv/logo.png",country:"المغرب",genre:"قنوات إخبارية",url:"https://63df3191463ce.streamlock.net/live/ngrp:Live2.stream_all/index.m3u8"},
+{id:51,name:"Medi1 TV Afrique",logo:"https://yt3.googleusercontent.com/ytc/AIdro_ndkVEcIst_W8DIdgbb1AtQ6ETQgepZA_StWN-SmofFR9k=s900-c-k-c0x00ffffff-no-rj",country:"المغرب",genre:"قنوات إخبارية",url:"https://streaming1.medi1tv.com/live/smil:medi1fr.smil/playlist.m3u8"},
+{id:52,name:"Medi1 TV Arabic ",logo:"https://img.medi1tv.com/vis_live_Medi1V_arabic.jpg",country:"المغرب",genre:"قنوات إخبارية",url:"https://streaming1.medi1tv.com/live/smil:medi1ar.smil/playlist.m3u8"},
+{id:53,name:"Medi1 TV Maghreb",logo:"https://img.medi1tv.com/vis_live_Medi1V_maghreb.jpg",country:"المغرب",genre:"قنوات إخبارية",url:"https://streaming1.medi1tv.com/live/smil:medi1tv.smil/playlist.m3u8"},
+{id:54,name:"Tele Maroc",logo:"https://www.telemaroc.tv/img/logo.png",country:"المغرب",genre:"قنوات ثقافية",url:"https://api.new.livestream.com/accounts/27130247/events/9197096/live.m3u8"},
+{id:55,name:"Almagharibia TV",logo:"https://yt3.googleusercontent.com/lIm_BoMk2BkSuXGgEXyeNyXXznU9MuSjH1oHlqwUpyW5zgJLxNnQ8dKL_-065SN7GC7tRm2S=s900-c-k-c0x00ffffff-no-rj",country:"المملكة المتحدة",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCwKS2U-DwjPZZvM6mSXPKgA.m3u8"},
+{id:56,name:"BBC Arabic ",logo:"https://play-lh.googleusercontent.com/3RvQX5qfET-nLzco0LkD7r9tSK6zr3QU2V4w7JhVeWv0e6XONUsrtBJrEYktF27lRDE",country:"المملكة المتحدة",genre:"قنوات إخبارية",url:"https://vs-cmaf-pushb-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_arabic_tv/pc_hd_abr_v2.mpd"},
+{id:57,name:"BBC News Arabic",logo:"https://ichef.bbci.co.uk/news/1024/branded_arabic/1B80/production/_102804070_bbcarabiclogo.jpg",country:"المملكة المتحدة",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCelk6aHijZq-GJBBB9YpReA.m3u8"},
+{id:58,name:"قناة الحوار الفضائية",logo:"https://alhiwar.tv/wp-content/uploads/2021/11/HIWAR-LOGO_PNG.png",country:"المملكة المتحدة",genre:"قنوات حوارية",url:"https://mn-nl.mncdn.com/alhiwar_live/smil:alhiwar.smil/playlist.m3u8"},
+{id:59,name:"Eman Channel",logo:"https://yt3.googleusercontent.com/U8VGrKgt4JcflXpVMBiJ33nJicV9B7tuQDHC2or1MftdovVKTc1BSl9VAWsYmF_9PNoQgLIRZg=s900-c-k-c0x00ffffff-no-rj",country:"المملكة المتحدة",genre:"قنوات دينية",url:"https://ap02.iqplay.tv:8082/iqb8002/3m9n/playlist.m3u8"},
+{id:60,name:"MUTV.uk",logo:"https://scontent.fcmn1-2.fna.fbcdn.net/v/t39.30808-1/367390922_868365434649987_8573319835075347593_n.jpg?stp=cp0_dst-jpg_s40x40_tt6&_nc_cat=1&ccb=1-7&_nc_sid=f4b9fd&_nc_eui2=AeH6l8ltwHbibHPC9MkJylkmnBg8PCBNFGucGDw8IE0Uay5_jZ-m_BJsMhMxl7Cq3J8&_nc_ohc=QKiUi3MGklMQ7kNvgHh10xD&_nc_zt=24&_nc_ht=scontent.fcmn1-2.fna&_nc_gid=AP5taCwj44vLMXgPrwkDs1H&oh=00_AYDbAqMOAsuF7SyHlNWhkAxXzt1aA3BMqfAqJnLV-OtqHA&oe=674CD0EE",country:"المملكة المتحدة",genre:"قنوات رياضية",url:"https://bcovlive-a.akamaihd.net/r2d2c4ca5bf57456fb1d16255c1a535c8/eu-west-1/6058004203001/playlist.m3u8"},
+{id:61,name:"PlutoTVAnimals.uk",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBH_jdzHp1EBT-ThVDAIcgHsevERLZtRxMg&s",country:"المملكة المتحدة",genre:"قنوات وثائقية",url:"https://service-stitcher.clusters.pluto.tv/stitch/hls/channel/5ddf8ea0d000120009bcad83/master.m3u8?advertisingId=&appName=web&appStoreUrl=&appVersion=DNT&app_name=&architecture=&buildVersion=&deviceDNT=0&deviceId=5ddf8ea0d000120009bcad83&deviceLat=&deviceLon=&deviceMake=web&deviceModel=web&deviceType=web&deviceVersion=DNT&includeExtendedEvents=false&marketingRegion=US&serverSideAds=false&sid=550&terminate=false&userId="},
+{id:62,name:" Animals TV",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nZ0j-TjxkRahE8upBKyxL8eZswuy_46LIUE_XsAXgAeC4=s160-c-k-c0x00ffffff-no-rj",country:"المملكة المتحدة",genre:"قنوات وثائقية",url:"https://service-stitcher.clusters.pluto.tv/stitch/hls/channel/5ddf8ea0d000120009bcad83/master.m3u8?advertisingId=&appName=web&appStoreUrl=&appVersion=DNT&app_name=&architecture=&buildVersion=&deviceDNT=0&deviceId=5ddf8ea0d000120009bcad83&deviceLat=&deviceLon=&deviceMake=web&deviceModel=web&deviceType=web&deviceVersion=DNT&includeExtendedEvents=false&marketingRegion=US&serverSideAds=false&sid=550&terminate=false&userId="},
+{id:63,name:"Adventure Sports TV",logo:"https://yt3.googleusercontent.com/u_yTYe9v8e70eEjiOFv2WugzxecjLG2b7NaYgNsL3FMUj-mdA-EfDGq3HJQdgyfTs7lMwjRGYg=s160-c-k-c0x00ffffff-no-rj",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://d3rl6ns7c3ilda.cloudfront.net/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/STIRR-MuxIP-AdventureSportsTV/438.m3u8"},
+{id:64,name:"beINSPORTS XTRA",logo:"https://www.beinsports.com/_next/static/media/bein_logo.af017869.webp?ver=28-06-2024?w=128&q=75",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5df975e2b27cf5000921c102/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c26f5a4-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=cb932046-e001-4189-a871-1376aa2ec340"},
+{id:65,name:"BEK Sports West",logo:"https://yt3.googleusercontent.com/ytc/AIdro_mFXNSEiK7ILOYozfsIlM2KDT_MxQ7aOa689JAQ3FVTvA=s160-c-k-c0x00ffffff-no-rj",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://cdn3.wowza.com/5/ZWQ1K2NYTmpFbGsr/BEK-WOWZA-1/smil:BEKPRIMEW.smil/playlist.m3u8"},
+{id:66,name:"CBSS ports HQ",logo:"https://sportsfly.cbsistatic.com/fly-0834/bundles/sportsmediacss/images/core/cbssports-dc-horizontal-logo.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5e9f2c05172a0f0007db4786/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c27b8f5-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=3a15356b-8467-4ae7-b2f6-9c8467fcf41d"},
+{id:67,name:"CBSS port sNetwork USA",logo:"https://sportsfly.cbsistatic.com/fly-0834/bundles/sportsmediacss/images/core/cbssports-dc-horizontal-logo.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://fl2.moveonjoy.com/CBS_SPORTS_NETWORK/index.m3u8"},
+{id:68,name:"LacrosseTV",logo:"https://yt3.googleusercontent.com/ytc/AIdro_n4oaVHcsWOBKKIF3km6WF8DkwbKSNyMRBPygQ8qWtADQ=s160-c-k-c0x00ffffff-no-rj",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://1840769862.rsc.cdn77.org/FTF/LSN_SCTE.m3u8"},
+{id:69,name:"MLB",logo:"https://www.mlbstatic.com/team-logos/league-on-dark/1.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5e66968a70f34c0007d050be/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c29dbd3-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=0f1d3baf-2f1b-47d7-9966-3e92a98f1c8a"},
+{id:70,name:"NFL Channel",logo:"https://static.www.nfl.com/image/upload/v1554321393/league/nvfr7ogywskqrfaiu38m.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5ced7d5df64be98e07ed47b6/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c2a5105-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=6477ef85-3680-442c-94d8-27197903b1f6"},
+{id:71,name:"NFLNetwork",logo:"https://static.www.nfl.com/image/upload/v1554321393/league/nvfr7ogywskqrfaiu38m.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://fl2.moveonjoy.com/NFL_NETWORK/index.m3u8"},
+{id:72,name:"NHL Network",logo:"https://media.d3.nhle.com/image/private/t_q-best/prd/assets/nhl/logos/lnh_shield_wm_on_dark_ciqmyz",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://apollo.production-public.tubi.io/live/ac-nhl.m3u8"},
+{id:73,name:"NHRA TV",logo:"https://www.nhra.com/sites/default/files/Chrome-NHRA-CDRLogo22_115x60.png",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://apollo.production-public.tubi.io/live/ac-nhra.m3u8"},
+{id:74,name:"Pac 12 Insider",logo:"https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/pac-12.com/images/responsive_2024/logo_main.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://pac12-roku-us.amagi.tv/playlist.m3u8"},
+{id:75,name:"PBR RidePass",logo:"https://scontent.fcmn1-4.fna.fbcdn.net/v/t39.30808-6/362051260_651771083645457_815878268663380515_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEzfKz_baaHikE2myUdtxmU-VAbwSdaHn75UBvBJ1oefq_rvnXBm5zRbp9aXUZvK18&_nc_ohc=UZ5etRoVtpQQ7kNvgEr_JDX&_nc_zt=23&_nc_ht=scontent.fcmn1-4.fna&_nc_gid=AVJ-xC2sN8XCe_xNDmqc7qV&oh=00_AYA9sT8ueBilAFGKh1uWpR7oewtZS3IDiVo_U1Vyo78u6A&oe=674D08A8",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/60d39387706fe50007fda8e8/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c2a9f21-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=f7275d4e-aa8e-4e8d-9d5e-6a5665bf8190"},
+{id:76,name:"PGATour",logo:"https://res.cloudinary.com/pgatour-prod/tours/web-logos/pga-tour-logo.svg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://apollo.production-public.tubi.io/live/ac-pga3.m3u8"},
+{id:77,name:"TVS Classic Sports",logo:"https://biz.prlog.org/tvstvnetworks/logo.jpg",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://bozztv.com/gusa/gusa-tvs/index.m3u8"},
+{id:78,name:"Unbeaten",logo:"https://unbeaten.com/assets/images/unbeaten-logo.png",country:"الولايات المتحدة الأمريكية",genre:"قنوات رياضية",url:"https://unbeaten-tcl.amagi.tv/playlist.m3u8"},
+{id:79,name:"FBI Files TV",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nZiEWsgdYUIgcD6HU60vDRuHKEsAaqizSv074ueuPeEYk=s160-c-k-c0x00ffffff-no-rj",country:"الولايات المتحدة الأمريكية",genre:"قنوات وثائقية",url:"https://apollo.production-public.tubi.io/live/ac-the-fbi-files.m3u8"},
+{id:80,name:"قناة المسيرة",logo:"https://upload.wikimedia.org/wikipedia/commons/2/2b/%D8%B4%D8%B9%D8%A7%D8%B1_%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D9%85%D8%B3%D9%8A%D8%B1%D8%A9.svg",country:"اليمن",genre:"قنوات إخبارية",url:"https://live.cdnbridge.tv/Almasirah/Almasirah_all/playlist.m3u8"},
+{id:81,name:"قناة بلقيس",logo:"https://yt3.googleusercontent.com/ytc/AIdro_lL6Ha-LyB7nzIBnCJCZWsKahNExN13myJ58U9d8DQIjFo=s900-c-k-c0x00ffffff-no-rj",country:"اليمن",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCxA_zZwALQMmVMSZyLKC-Nw.m3u8"},
+{id:82,name:"قناة يمن شباب نت",logo:"https://yemenshabab.net/assets/images/logo.png",country:"اليمن",genre:"قنوات ثقافية",url:"https://master.starmena-cloud.com/hls/yemenshabab.m3u8"},
+{id:83,name:"قناة العالم",logo:"https://scontent.frba1-1.fna.fbcdn.net/v/t39.30808-6/462619807_122119412612428833_7332662251971400923_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGj-7tgw8C0bL3tqv47UNsUuhRJqYQYTnG6FEmphBhOcYfYY4OYbY0LrjzqMaEuHgU&_nc_ohc=CufUJhsTEGkQ7kNvgE-sKX6&_nc_zt=23&_nc_ht=scontent.frba1-1.fna&_nc_gid=AKaSCENna3wKi4okUFmoZMZ&oh=00_AYBCB6JN2yL2pUmxw-SdXDCoPaNOP924waoBWMhmC2wpxw&oe=674B8298",country:"إيران",genre:"قنوات إخبارية",url:"https://live2.alalam.ir/alalam.m3u8"},
+{id:84,name:"Inter TV",logo:"https://pbs.twimg.com/profile_images/1811035594144825344/EXzgzqG3_400x400.jpg",country:"إيطاليا",genre:"قنوات رياضية",url:"https://open.http.mp.streamamg.com/p/3001560/sp/300156000/playManifest/entryId/0_xmkk2kjr/flavorIds/0_zlbr85f8,0_zlbr85f8,0_noewhew2/format/applehttp/protocol/https/a.m3u8"},
+{id:85,name:"Discover Pakistan",logo:"https://upload.wikimedia.org/wikipedia/en/4/47/Discover_Pakistan_Logo.png",country:"باكستان",genre:"قنوات وثائقية",url:"https://livecdn.live247stream.com/discoverpakistan/web/playlist.m3u8"},
+{id:86,name:"TRT Arabi",logo:"https://is1-ssl.mzstatic.com/image/thumb/Purple112/v4/c8/60/9a/c8609a10-ad5f-2c82-3ce7-e27a2e154c1e/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/1200x600wa.png",country:"تركيا",genre:"قنوات إخبارية",url:"https://tv-trtarabi.medya.trt.com.tr/master.m3u8"},
+{id:87,name:"Dos tTV",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQboCcBet3rHPxr35LMFwrKoOK2nTQmCKYsxQ&s",country:"تركيا",genre:"قنوات دينية",url:"https://dost.stream.emsal.im/tv/live.m3u8"},
+{id:88,name:"SportsTV.tr",logo:"https://upload.wikimedia.org/wikipedia/tr/4/48/Sportstv_logosu.png",country:"تركيا",genre:"قنوات رياضية",url:"https://live.sportstv.com.tr/hls/low/sportstv.m3u8"},
+{id:89,name:"ColimdoTV.do",logo:"https://colimdotv.com/logo.fw.png",country:"جمهورية الدومينيك",genre:"قنوات رياضية",url:"https://cnn.livestreaminggroup.info:3132/live/colimdotvlive.m3u8"},
+{id:90,name:"RT France",logo:"https://upload.wikimedia.org/wikipedia/fr/thumb/9/9e/RT_France.svg/1200px-RT_France.svg.png",country:"روسيا",genre:"قنوات إخبارية",url:"https://rt-fra.rttv.com/dvr/rtfrance/playlist.m3u8"},
+{id:91,name:"قناة روسيا اليوم",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Russia-today-logo.svg/1200px-Russia-today-logo.svg.png",country:"روسيا",genre:"قنوات إخبارية",url:"https://rt-arb.rttv.com/dvr/rtarab/playlist.m3u8"},
+{id:92,name:"SOS Kanal Plus",logo:"https://soskanal.net/wp-content/uploads/2020/01/cropped-SosKanalPlus-Logo-NOVI-BELA-POZADINA-FINAL-100x28-1-1-1024x257.png",country:"روسيا",genre:"قنوات رياضية",url:"https://53be5ef2d13aa.streamlock.net/soskanalplus/soskanalplus.stream/playlist.m3u8"},
+{id:93,name:"AstrahanRuSport.ru",logo:"https://sport.astrakhan.ru/image/logo-astrakhan-sport.png",country:"روسيا",genre:"قنوات رياضية",url:"https://streaming.astrakhan.ru/astrakhanrusporthd/playlist.m3u8"},
+{id:94,name:"Belarus5.by",logo:"https://smotret.tv/images/belarus-5.webp",country:"روسيا البيضاء",genre:"قنوات رياضية",url:"https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus5.smil/playlist.m3u8"},
+{id:95,name:"Belarus5Internet.by",logo:"https://smotret.tv/images/belarus-5.webp",country:"روسيا البيضاء",genre:"قنوات رياضية",url:"https://edge59.dc.beltelecom.by/ngtrk/smil:belarus5int.smil/playlist.m3u8"},
+{id:96,name:"قناة الإستقامة",logo:"https://www.istiqama.tv/wp-content/uploads/2024/04/channel_logo-1024x557.png",country:"سلطة عمان",genre:"قنوات دينية",url:"https://jmc-live.ercdn.net/alistiqama/alistiqama.m3u8"},
+{id:97,name:"قناة الرياضية سلطنة عُمان",logo:"https://yt3.googleusercontent.com/LV6ZyNgPHjQQ6T7fBZ3RS3B4oOqNv9cSPlzHpvp1Xd8cMufuAQ7D-FaINx6NTtiuBGYG0TuLXw=s160-c-k-c0x00ffffff-no-rj",country:"سلطنة عمان",genre:"قنوات رياضية",url:"https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8"},
+{id:98,name:"قناة عمان مباشر",logo:"https://alroya.om/thumb/w600/uploads//images/2d9eaffec86611dc520df4fd90cb0c00.jpg",country:"سلطنة عمان",genre:"قنوات إخبارية",url:"https://partwota.cdn.mgmlcdn.com/omlive/smil:omlive.stream.smil/chunklist.m3u8"},
+{id:99,name:"Tigo Sports",logo:"https://main.dbk3utu6gfh8s.amplifyapp.com/assets/home/logo_tigo-sport_inline.svg",country:"غواتيمالا",genre:"قنوات رياضية",url:"https://cnm-tsl.otteravision.com/cnm/tsl/tsl.m3u8"},
+{id:100,name:"Sport en France",logo:"https://www.france.tv/image/logo/1000/1000/h/l/e/417f4eaf-phphyrelh.png",country:"فرنسا",genre:"قنوات رياضية",url:"https://sp1564435593.mytvchain.info/live/sp1564435593/index.m3u8"},
+{id:101,name:"BFM Business",logo:"https://scontent.frba1-1.fna.fbcdn.net/v/t39.30808-6/334061224_738130811011002_3898998621007971873_n.jpg?_nc_cat=1&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHF-uTETD96kWrgPJ9DQzlNsbFu0MC738yxsW7QwLvfzPFNySWZhROiShPPGdMIkD4&_nc_ohc=74cokRNleYcQ7kNvgFVlrEN&_nc_zt=23&_nc_ht=scontent.frba1-1.fna&_nc_gid=ArzHs6SjIYsO_KQTXOrAoLg&oh=00_AYCsg2QfOLgWSQLyql20qeXlcyFDqP7lVTVRGOeWPJnGWQ&oe=674BD51F",country:"فرنسا",genre:"قنوات أخبار إقتصادية",url:"https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_BUSINESS/index.m3u8?end=END&start=LIVE"},
+{id:102,name:"TV Finance",logo:"https://rsrc.s3wfg.com/web/img/logos/tw-financal.png",country:"فرنسا",genre:"قنوات أخبار إقتصادية",url:"https://strhlslb01.streamakaci.tv/str_tvfinance_tvfinance/str_tvfinance_multi/playlist.m3u8"},
+{id:103,name:"Africa 24",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nPCPPLjp-33-ae31fQNCUONzD_xU9OYLH0GCbz28e8dco=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات إخبارية",url:"https://edge12.vedge.infomaniak.com/livecast/ik:africa24/manifest.m3u8"},
+{id:104,name:"Africa news French",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nPCPPLjp-33-ae31fQNCUONzD_xU9OYLH0GCbz28e8dco=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات إخبارية",url:"https://rakuten-africanews-2-be.samsung.wurl.tv/manifest/playlist.m3u8"},
+{id:105,name:"Euronews French",logo:"https://yt3.googleusercontent.com/HTOTZi2U8zk4wk6MqJa07U5PpZ_G8wKOMYI49rlaxUUPVGWEfOK-FXFnPU6t2Eiowfz-F1Tm4Q=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات إخبارية",url:"https://euronews-euronews-french-3-us.plex.wurl.tv/playlist.m3u8"},
+{id:106,name:"France 24 Arabic",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRB_qgzSzYI8Pe_kPbTvBWFGNGQA78HlYO0yw&s",country:"فرنسا",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCdTyuXgmJkG_O8_75eqej-w.m3u8"},
+{id:107,name:"France 24 French",logo:"https://upload.wikimedia.org/wikipedia/en/thumb/6/65/FRANCE_24_logo.svg/800px-FRANCE_24_logo.svg.png",country:"فرنسا",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCCCPCZNChQdGa9EkATeye4g.m3u8"},
+{id:108,name:"TV5 MondeInfo",logo:"https://yt3.googleusercontent.com/dta_1oTIVadJjGyWtfGmhMJuhrOxRwz-1cgwJ8p559PYLY77eUM1_9NpMvdE07GnYbb9cOpgNA=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات إخبارية",url:"https://ott.tv5monde.com/Content/HLS/Live/channel(info)/variant.m3u8"},
+{id:109,name:"Francophonie24",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJD2UyqIsKqRT7kj6V_EgeJtg_mYRxzxm4Rg&s",country:"فرنسا",genre:"قنوات ثقافية",url:"https://5421175365ea3.streamlock.net/live/smil:switch.smil/playlist.m3u8"},
+{id:110,name:"SQOOL TV ",logo:"https://www.sqooltv.com/app/themes/sqool-tv/assets/img/SQOOLTV_LOGO.png",country:"فرنسا",genre:"قنوات حوارية",url:"https://ythls.armelin.one/channel/UCaEqMbRYYOmI3WrALMhxuIg.m3u8"},
+{id:111,name:"TV Extreme fr",logo:"https://scontent.fcmn1-1.fna.fbcdn.net/v/t39.30808-6/444484442_787249893516807_3997095404449473503_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEHCL8ZRv3xV1Wn9Gaph0IN6-dqcegybjfr52px6DJuNws4-q2s3mhTPdc_n4uw5dU&_nc_ohc=4sJjGXPPc38Q7kNvgEOvvez&_nc_zt=23&_nc_ht=scontent.fcmn1-1.fna&_nc_gid=AgOgcC0TBK_SIucFr_TxE40&oh=00_AYBu_8YicGibhWQppE78Y6HtiXFwQRhekvMMRUr77qQ3Ig&oe=674CC189",country:"فرنسا",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f8ed327f9e9b0000761141e/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e055173-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=7522642e-9d44-4966-a890-495997625c28"},
+{id:112,name:"TV Sports France",logo:"https://yt3.googleusercontent.com/ytc/AIdro_lzRZMMMXeypEnwZyB3h_X6EGn4qU3x1lG84VndygHP4qg=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات رياضية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/6081310e48d3200007afaf3b/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e05c6a5-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=aa2cd1f8-5f20-441d-97cb-63e4c1c5e4f6"},
+{id:113,name:"DossiersFBI.fr",logo:"https://yt3.googleusercontent.com/kw3FH1BeIZRtGJkVVn3AAZFQrzPEfRboP_gYDR9GB2CMVRsU8BZbuLI6SDFc1Hj0Gfb0_fIhK6s=s160-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f8edad922b10b000753bc37/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e057883-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a243842a-2a92-4ca0-bdea-73f35b29bf5c"},
+{id:114,name:"Humanity.fr",logo:"",country:"فرنسا",genre:"قنوات وثائقية",url:"https://alchimie-humanity-documentaries-fr-rakuten.amagi.tv/playlist.m3u8"},
+{id:115,name:"TV Investigation",logo:"https://www.bellmedia.ca/lede/wp-content/uploads/2021/06/500x500-investigation.png",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f914f4b36d67d0007a91a04/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e057885-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a6c08e34-78b6-42cf-bca2-5017c1566c3c"},
+{id:116,name:"TV Paranormal",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeIx6qCyqG7Zl13t_91Uk-ChVi5ObXqVARjg&s",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f8ed9461b35690007a0bc3a/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e057882-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=71e28713-4d07-4b50-8bdf-ede6b2fac167"},
+{id:117,name:"TV Animaux",logo:"https://yt3.googleusercontent.com/ytc/AIdro_meZ-LR_gUtwNEVqYq3BBBlFuH-iBT0Dk0uaNH886h6SQc=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/60925a44f0350600075a1fdc/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e05edb2-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=754cd30f-6a34-42d3-9e06-63128a8e07e3"},
+{id:118,name:"TV Histoire",logo:"https://www.programme-tv.net/imgre/fit/~2~channel~354060da3ea6eca2.png/1200x630/crop-from/top/quality/80/histoire-tv.png",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/611e771e2f5f180007002224/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e063bd3-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a7663e8d-062c-4293-9b93-a2bd07b5cb20"},
+{id:119,name:"DossiersFBI",logo:"https://yt3.googleusercontent.com/kw3FH1BeIZRtGJkVVn3AAZFQrzPEfRboP_gYDR9GB2CMVRsU8BZbuLI6SDFc1Hj0Gfb0_fIhK6s=s160-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f8edad922b10b000753bc37/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e057883-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a243842a-2a92-4ca0-bdea-73f35b29bf5c"},
+{id:120,name:"TV Investigation -",logo:"https://www.bellmedia.ca/lede/wp-content/uploads/2021/06/500x500-investigation.png",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/5f914f4b36d67d0007a91a04/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e057885-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a6c08e34-78b6-42cf-bca2-5017c1566c3c"},
+{id:121,name:"TV Animaux -",logo:"https://yt3.googleusercontent.com/ytc/AIdro_meZ-LR_gUtwNEVqYq3BBBlFuH-iBT0Dk0uaNH886h6SQc=s900-c-k-c0x00ffffff-no-rj",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/60925a44f0350600075a1fdc/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e05edb2-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=754cd30f-6a34-42d3-9e06-63128a8e07e3"},
+{id:122,name:"TV Histoire -",logo:"https://www.programme-tv.net/imgre/fit/~2~channel~354060da3ea6eca2.png/1200x630/crop-from/top/quality/80/histoire-tv.png",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/611e771e2f5f180007002224/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=8e063bd3-1f2c-11ef-86d8-5d587df108c6&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a7663e8d-062c-4293-9b93-a2bd07b5cb20"},
+{id:123,name:"TV Travel",logo:"https://upload.wikimedia.org/wikipedia/commons/2/2f/Travel_Channel_-_Logo.svg",country:"فرنسا",genre:"قنوات وثائقية",url:"http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/59c01b1953680139c6ae9d4d/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=6c2b3b69-30d3-11ef-9cf5-e9ddff8ff496&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=285c5e14-2bb7-45ce-b0e7-4869bb438d35"},
+{id:124,name:"قناة النجاح نيوز",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTztnhfR-L319D2hijG__tY-_0znWm9gt4fkw&s",country:"فلسطين",genre:"قنوات إخبارية",url:"https://streaming.najah.edu:8443/hls/AlNajah.m3u8"},
+{id:125,name:"قناة فلسطين اليوم",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXsOgHvCeteuoITT-PdfO3Z1cKZiFU9tGhfQ&s",country:"فلسطين",genre:"قنوات إخبارية",url:"https://live.paltodaytv.com/paltv/live/playlist.m3u8"},
+{id:126,name:"قناة مساواة",logo:"https://scontent.fcmn1-2.fna.fbcdn.net/v/t39.30808-6/311316306_637716147888013_8106912998595939945_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeFhzeZ1VIDIYrl8LBQq3v--kOKa2hXz5qiQ4praFfPmqHUV4T-czHLDJPW2Dny3iRw&_nc_ohc=a_6slnM9IC8Q7kNvgELrCIP&_nc_zt=23&_nc_ht=scontent.fcmn1-2.fna&_nc_gid=AVRVqhQ7KxvJ0aUHubSfEJM&oh=00_AYAGtQNq8t7QarBjxlRQ5hTGF8P9VW7Q84dL_vkgDl0Okg&oe=674D3B59",country:"فلسطين",genre:"قنوات عامة",url:"https://pbc.furrera.ps/musawahd/index.m3u8"},
+{id:127,name:"قناة فلسطين مباشر",logo:"https://scontent.fcmn1-1.fna.fbcdn.net/v/t39.30808-6/271683418_235418315428949_7398584169176826671_n.png?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEiIa-ycYHeXimBNYSN7vs-ToUCQShjZLpOhQJBKGNkukUfyf4srPQnMC0X02nIbbs&_nc_ohc=-KDsPXJbCP0Q7kNvgEYftE_&_nc_zt=23&_nc_ht=scontent.fcmn1-1.fna&_nc_gid=AGdkwhjjUW67ag8N_T1fm-A&oh=00_AYANmTR9QY4jy6uxaG5-ZVYtQ88hGoHvOr1cIHP9hG-shQ&oe=674D10CB",country:"فلسطين",genre:"قنوات عامة",url:"https://pbc.furrera.ps/palestinelivehd/index.m3u8"},
+{id:128,name:"قناة فلسطين",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Palestine_Satellite_Channel_Logo.png/300px-Palestine_Satellite_Channel_Logo.png",country:"فلسطين",genre:"قنوات عامة",url:"https://pbc.furrera.ps/palestinehd/index.m3u8"},
+{id:129,name:"قناة الجزيرة",logo:"https://upload.wikimedia.org/wikipedia/ar/thumb/7/71/Aljazeera.svg/198px-Aljazeera.svg.png",country:"قطر",genre:"قنوات إخبارية",url:"https://live-hls-v3-aja.getaj.net/AJA-V3/index.m3u8"},
+{id:130,name:"قناة الجزيرة الإنجليزية",logo:"https://www.aljazeera.net/wp-content/uploads/2015/12/a0cef91a-9cc4-431c-8b7b-04515d4282de.jpeg?resize=686%2C410&quality=80",country:"قطر",genre:"قنوات إخبارية",url:"https://d1cy85syyhvqz5.cloudfront.net/v1/master/7b67fbda7ab859400a821e9aa0deda20ab7ca3d2/aljazeeraLive/AJE/index.m3u8"},
+{id:131,name:"قناة الجزيرة مباشر",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlfPeNFB_Ca1Zh-aR8-vDYMBTP2zORQ8UlxA&s",country:"قطر",genre:"قنوات إخبارية",url:"https://live-hls-web-ajm.getaj.net/AJM/index.m3u8"},
+{id:132,name:"تلفزيون العربي",logo:"https://www.alaraby.com/themes/custom/arabytv/logo-print.png",country:"قطر",genre:"قنوات إخبارية",url:"https://alaraby.cdn.octivid.com/alaraby2n/smil:alaraby2n.stream.smil/chunklist.m3u8"},
+{id:133,name:"تلفزيون العربي 2",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRESd8ZDu670QR9wfJPF02TW8fIxB4jkHeFOA&s",country:"قطر",genre:"قنوات إخبارية",url:"https://alaraby.cdn.octivid.com/alaraby/smil:alaraby.stream.smil/chunklist.m3u8"},
+{id:134,name:"قناة الجزيرة الوثائقية",logo:"https://upload.wikimedia.org/wikipedia/ar/e/e6/Al_Jazeera_Doc.png",country:"قطر",genre:"قنوات وثائقية",url:"https://live-hls-web-ajd.getaj.net/AJD/index.m3u8"},
+{id:135,name:"قناة  المنار",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/AlManar.webp/270px-AlManar.webp.png",country:"لبنان",genre:"قنوات إخبارية",url:"https://edge.fastpublish.me/live/index.m3u8"},
+{id:136,name:"قناة  الميادين",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6nLmOrXKozEpwTO7uhfI8pSRWCjjVGa5YOg&s",country:"لبنان",genre:"قنوات إخبارية",url:"https://mdnlv.cdn.octivid.com/almdn/smil:mpegts.stream.smil/playlist.m3u8"},
+{id:137,name:"قناة  فليسطيننا",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4JiiEFZVjfZ2EYtDwQanc2qLdIN8lxWn7iA&s",country:"لبنان",genre:"قنوات إخبارية",url:"https://ffs3.gulfsat.com/Falestinona-TV/index.fmp4.m3u8"},
+{id:138,name:"تلفزيون المسار",logo:"https://scontent.fcmn1-1.fna.fbcdn.net/v/t39.30808-6/438161306_428625203455617_4762485942756460123_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHztqQ4_uMuqc7vMQire3_in1eaY6m1n5efV5pjqbWflzRP83TZTHZHqgtFN65_jZw&_nc_ohc=zWB7whABlH0Q7kNvgFYcdFl&_nc_zt=23&_nc_ht=scontent.fcmn1-1.fna&_nc_gid=AwJ8jXSGyTFlNwUCntHb423&oh=00_AYAweguwRwfmWbRxiKQpvz_qxz3uYQgTwZf6bd5d-MFtzw&oe=674DDD86",country:"ليبيا",genre:"قنوات إخبارية",url:"https://master.starmena-cloud.com/hls/almasar.m3u8"},
+{id:139,name:"قناة فبراير",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo1BhLRaL591qu2Gjl0tfqRHdHSqozzHc0ew&s",country:"ليبيا",genre:"قنوات إخبارية",url:"https://b01c02nl.mediatriple.net/videoonlylive/mtfknklgwrlive/broadcast_5dc818c793576.smil/playlist.m3u8"},
+{id:140,name:"apart TV",logo:"https://www.apart-tv.lu/_res/logo-2023.svg",country:"ليكسنبورغ",genre:"قنوات أخبار إقتصادية",url:"https://2-fss-2.streamhoster.com/pl_124/206820-4338160-1/playlist.m3u8"},
+{id:141,name:"قناة النيل الإخبارية",logo:"https://upload.wikimedia.org/wikipedia/commons/2/24/Nile_News_TV_logo.png",country:"مصر",genre:"قنوات إخبارية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_nile_news/tracks-v1a1/mono.m3u8?token=7bf45d758b164b390ed1100b8b87c917ab226c6e-f0759468bcd8416cfd7e861fc3156e21-1732544246-1732533446"},
+{id:142,name:"قناة الغد",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%BA%D8%AF.png/640px-%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%BA%D8%AF.png",country:"مصر",genre:"قنوات إخبارية",url:"https://ru2.elahmad.com/tv712_www.elahmad.com_alghad_tv/tracks-v1a1/mono.m3u8?token=5bec79854ca2d405136d7cb9964ffe777aa4fd09-1167b8aa09f4f0f6f85fab6464062869-1732544432-1732533632"},
+{id:143,name:"قناة القاهرة الإخبارية",logo:"https://yt3.googleusercontent.com/uOlHS94R7RjdUaDWjXwNplTRItDSBamOfG0gM62jbw912HmaaLjNVrmd6ovo-F4GMYlJum56T5I=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات إخبارية",url:"https://bcovlive-a.akamaihd.net/d30cbb3350af4cb7a6e05b9eb1bfd850/eu-west-1/6057955906001/profile_1/chunklist.m3u8"},
+{id:144,name:"قناة الغد بث 1",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%BA%D8%AF.png/640px-%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%BA%D8%AF.png",country:"مصر",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCH4UNKBHSNwstan99YDoCVg.m3u8"},
+{id:145,name:"قناة القاهرة الإخبارية بث 1",logo:"https://yt3.googleusercontent.com/uOlHS94R7RjdUaDWjXwNplTRItDSBamOfG0gM62jbw912HmaaLjNVrmd6ovo-F4GMYlJum56T5I=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات إخبارية",url:"https://bcovlive-a.akamaihd.net/d30cbb3350af4cb7a6e05b9eb1bfd850/eu-west-1/6057955906001/playlist.m3u8"},
+{id:146,name:"ExtraLive",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQC73Mlc03oVcTN8gCMZSKFFcZygvEf8QOKSg&s",country:"مصر",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UCXw5vClfMWccw-OocfhQHiA.m3u8"},
+{id:147,name:"ExtraNews",logo:"https://yt3.googleusercontent.com/MYHdNc4JfZh1qMTjEgeBxnO2Ew8oxqybyYLXR7TY7PXhGuv75YD2g2E2LLO6F1UkNK3xb24zlNw=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات إخبارية",url:"https://ythls.armelin.one/channel/UC65F33K2cXk9hGDbOQYhTOw.m3u8"},
+{id:148,name:"قناة مكملين بث 1",logo:"https://upload.wikimedia.org/wikipedia/commons/4/45/%D9%82%D9%86%D8%A7%D8%A9_%D9%85%D9%83%D9%85%D9%84%D9%8A%D9%86.jpg",country:"مصر",genre:"قنوات إخبارية",url:"https://mn-nl.mncdn.com/mekameleen/smil:mekameleentv.smil/playlist.m3u8"},
+{id:149,name:"قناة مكملين",logo:"https://upload.wikimedia.org/wikipedia/commons/4/45/%D9%82%D9%86%D8%A7%D8%A9_%D9%85%D9%83%D9%85%D9%84%D9%8A%D9%86.jpg",country:"مصر",genre:"قنوات إعلامية",url:"https://mn-nl.mncdn.com/mekameleen/smil:mekameleentv.smil/chunklist_b2128000.m3u8?user=sgls540839&session=ebfcbea02049a578fa06d663e18dbca3819e305f90283c5a9b7845826ac25b45517e7c8f391d493b384e97fef14771cc"},
+{id:150,name:"قناة الرحمة",logo:"https://upload.wikimedia.org/wikipedia/ar/5/53/%D8%B4%D8%B9%D8%A7%D8%B1_%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D8%A9_%D8%A7%D9%84%D9%81%D8%B6%D8%A7%D8%A6%D9%8A%D8%A9.png",country:"مصر",genre:"قنوات دينية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_alrahma/tracks-v1a1/mono.m3u8?token=51ebe1d6e80e2d51b2243bbe67032a18c9863ced-6c4a5af80546fe869ffdbe93ece827c9-1732542785-1732531985"},
+{id:151,name:"قناة هدى",logo:"https://upload.wikimedia.org/wikipedia/commons/f/f1/%D8%B4%D8%B9%D8%A7%D8%B1_%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D9%87%D8%AF%D9%89_%D9%85%D8%B5%D8%B1_%D9%85%D9%81%D8%B1%D8%BA.png",country:"مصر",genre:"قنوات دينية",url:"https://cdn.bestream.io:19360/elfaro1/elfaro1.m3u8"},
+{id:152,name:"قناة أزهرى",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1zNVPt3J9RMPMUr_3zOdLL0IVoZPeVjXOWg&s",country:"مصر",genre:"قنوات دينية",url:"https://edge66.magictvbox.com/liveApple/azhari/tracks-v1a1/mono.m3u8"},
+{id:153,name:"قناة الناس",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Logoelnas.png/280px-Logoelnas.png",country:"مصر",genre:"قنوات دينية",url:"https://ru2.elahmad.com/tv712_www.elahmad.com_elnastv/tracks-v1a1/mono.m3u8?token=78cee0f3b6c2c28f39743bd4952c2251978ecd48-e3d6bb973609898a324395b3acb7a9f1-1732542922-1732532122"},
+{id:154,name:"ON Sport",logo:"https://yt3.googleusercontent.com/ytc/AIdro_nhQGLEY2HSTnjlOCerTEOieWKa22R0l3JqhM4C_L0KJ38=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات رياضية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_on_sport/tracks-v1a1/mono.m3u8?token=3ec9bf3b78116b1b37c85a23f28b358a379c0441-f7894845f586690efa09e06006050319-1732543228-1732532428"},
+{id:155,name:"ON Sport 1",logo:"https://livehd7.co/wp-content/uploads/2024/11/ontime-1.jpg",country:"مصر",genre:"قنوات رياضية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_on_sport/tracks-v1a1/mono.m3u8?token=421dd5a8882d0dd678695652d4a57074f777f72e-13983f1d1e0eebbaa8a2fc169dffd165-1732543352-1732532552"},
+{id:156,name:"ON Sport 2",logo:"https://livehd7.co/wp-content/uploads/2024/11/ontime-1.jpg",country:"مصر",genre:"قنوات رياضية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_on_sport2/tracks-v1a1/mono.m3u8?token=ce21830c61d143262db7f713d142a92d44f9a593-a73af2e79fe620d8a4d653086987bca1-1732543672-1732532872"},
+{id:157,name:" Zamalek Sports Live",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXFqM1bBNy_KUt_r_Coeg_L6KBoavLTpS_MQ&s",country:"مصر",genre:"قنوات رياضية",url:"https://ru2.elahmad.com/tv712_www.elahmad.com_zamalek/tracks-v1a1/mono.m3u8?token=4f13c31ceb361b0713daa2218b4fd027686cac3e-970d4e848680407b8ffeac86dd09f714-1732544007-1732533207"},
+{id:158,name:"Alahly Tv Live",logo:"https://yt3.googleusercontent.com/ytc/AIdro_mGOi86457H-pnYwuUyu2OSWpdvfcmkZBqwJ8Ctfss2lUg=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات رياضية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_alahly_tv/tracks-v1a1/mono.m3u8?token=2e42523effbe37602ffbe58e7e18a759a2d0ad64-98f1f32313c201ec632b2523d84b80b5-1732544103-1732533303"},
+{id:159,name:"قناة النيل الرياضية",logo:"https://yt3.googleusercontent.com/ytc/AIdro_n2lptjuPDyDgOfjCcSfml5ed-q60kdYOm-U0e8x5NnbQ=s900-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات رياضية",url:"https://ru2.elahmad.com/tv712_www.elahmad.com_nile_sport/tracks-v1a1/mono.m3u8?token=b30a10927b48fe39c70b519f6d2870fd595d8f5d-030658a076878fa18b0888773016c6e4-1732544346-1732533546"},
+{id:160,name:"قناة الوثائقية",logo:"https://yt3.googleusercontent.com/cjAukChUrzUlbqzo8H9ZQprjVC1kJTZFbmmKeHmoFcd4l54-QRqrpHageR_pCtMWsvrr9jrLeQ=s160-c-k-c0x00ffffff-no-rj",country:"مصر",genre:"قنوات وثائقية",url:"https://ru1.elahmad.com/tv712_www.elahmad.com_alwathaeqya/tracks-v1a1/mono.m3u8?token=2fa57fa932a15cc3fc020f7641aa277ea652feec-8ec39debb1294b665d5b4353e7c3ceaf-1732543711-1732532911"},
+
+
+
+];
+
+let player = null;
+
+function populateFilters() {
+    const countries = [...new Set(channels.map(c => c.country))];
+    const genres = [...new Set(channels.map(c => c.genre))];
+    
+    const countryFilter = document.getElementById('countryFilter');
+    const genreFilter = document.getElementById('genreFilter');
+    
+    countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        countryFilter.appendChild(option);
+    });
+    
+    genres.forEach(genre => {
+        const option = document.createElement('option');
+        option.value = genre;
+        option.textContent = genre;
+        genreFilter.appendChild(option);
+    });
+}
+
+function createChannelCards(filteredChannels = channels) {
+    const grid = document.getElementById('channelsGrid');
+    grid.innerHTML = '';
+    
+    filteredChannels.forEach(channel => {
+        const card = document.createElement('div');
+        card.className = 'col-6 col-md-4 col-lg-3';
+        card.innerHTML = `
+            <div class="channel-card card h-100" data-bs-toggle="modal" data-bs-target="#videoModal" data-channel-id="${channel.id}">
+                <div class="card-body text-center">
+                    <img src="${channel.logo}" alt="${channel.name}" class="channel-logo mb-2">
+                    <h5 class="card-title mb-1">${channel.name}</h5>
+                    <p class="card-text small text-muted">
+                        <i class="fas fa-globe me-1"></i>${channel.country}
+                        <br>
+                        <i class="fas fa-tag me-1"></i>${channel.genre}
+                    </p>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function initVideoPlayer() {
+    const videoModal = document.getElementById('videoModal');
+    
+    videoModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+        const channelId = button.dataset.channelId;
+        const channel = channels.find(c => c.id === parseInt(channelId));
+        
+        document.getElementById('channelInfo').innerHTML = `
+            <img src="${channel.logo}" alt="${channel.name}" class="channel-logo mb-2">
+            <h5>${channel.name}</h5>
+        `;
+        
+        if (!player) {
+            player = videojs('videoPlayer', {
+                fluid: true,
+                controls: true,
+                autoplay: true,
+                preload: 'auto',
+                html5: {
+                    hls: {
+                        enableLowInitialPlaylist: true,
+                        smoothQualityChange: true,
+                        overrideNative: true
+                    }
+                }
+            });
+        }
+        
+        player.src({
+            src: channel.url,
+            type: 'application/x-mpegURL'
+        });
+        
+        player.play().catch(error => {
+            console.error('Playback error:', error);
+        });
+    });
+    
+    videoModal.addEventListener('hidden.bs.modal', () => {
+        if (player) {
+            player.pause();
+            player.src('');
+        }
+    });
+}
+
+function initFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const countryFilter = document.getElementById('countryFilter');
+    const genreFilter = document.getElementById('genreFilter');
+    
+    function filterChannels() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCountry = countryFilter.value;
+        const selectedGenre = genreFilter.value;
+        
+        const filteredChannels = channels.filter(channel => {
+            const matchesSearch = channel.name.toLowerCase().includes(searchTerm);
+            const matchesCountry = !selectedCountry || channel.country === selectedCountry;
+            const matchesGenre = !selectedGenre || channel.genre === selectedGenre;
+            return matchesSearch && matchesCountry && matchesGenre;
+        });
+        
+        createChannelCards(filteredChannels);
+    }
+    
+    searchInput.addEventListener('input', filterChannels);
+    countryFilter.addEventListener('change', filterChannels);
+    genreFilter.addEventListener('change', filterChannels);
+}
+
+window.onscroll = function() {
+    const btn = document.getElementById('scrollTopBtn');
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
+};
+
+document.getElementById('scrollTopBtn').onclick = function() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    populateFilters();
+    createChannelCards();
+    initVideoPlayer();
+    initFilters();
+});
+</script>
+</body>
+</html>
